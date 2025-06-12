@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type User struct {
 	ID      string            `json:"id"`
 	Name    string            `json:"name"`
@@ -7,8 +9,14 @@ type User struct {
 }
 
 type Wallet struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Balance int    `json:"balance"`
-	UserID  string `json:"userId"`
+	ID           string        `json:"id"`
+	Name         string        `json:"name"`
+	Balance      int           `json:"balance"`
+	UserID       string        `json:"userId"`
+	Transactions []Transaction `json:"transactions"`
+}
+type Transaction struct {
+	Type   string
+	Amount int
+	Date   time.Time
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -64,14 +65,23 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetWallet(w http.ResponseWriter, r *http.Request) {
-	walletID := mux.Vars(r)["walletid"]
-	wallet, ok := wallets[walletID]
+	userID := mux.Vars(r)["userid"]
+	walletName := mux.Vars(r)["walletname"]
+
+	user, ok := users[userID]
 	if !ok {
-		http.Error(w, "Wallet not found", http.StatusNotFound)
+		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
 
-	json.NewEncoder(w).Encode(wallet)
+	for _, wallet := range user.Wallets {
+		if wallet.Name == walletName {
+			json.NewEncoder(w).Encode(wallet)
+			return
+		}
+	}
+
+	http.Error(w, "wallet not found", http.StatusNotFound)
 }
 
 func GetWallets(w http.ResponseWriter, r *http.Request) {
@@ -107,23 +117,29 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var wallet *Wallet
-	for _, w := range user.Wallets {
-		if w.Name == walletName {
-			wallet = &w
+	walletID := ""
+	for id, wallet := range user.Wallets {
+		if wallet.Name == walletName {
+			walletID = id
 			break
 		}
 	}
-
-	if wallet == nil {
+	if walletID == "" {
 		http.Error(w, "wallet not found", http.StatusNotFound)
 		return
 	}
 
+	wallet := user.Wallets[walletID]
 	wallet.Balance += amount
-	user.Wallets[wallet.ID] = *wallet
+	wallet.Transactions = append(wallet.Transactions, Transaction{
+		Type:   "deposit",
+		Amount: amount,
+		Date:   time.Now(),
+	})
+
+	user.Wallets[walletID] = wallet
 	users[userID] = user
-	wallets[wallet.ID] = *wallet
+	wallets[walletID] = wallet
 
 	json.NewEncoder(w).Encode(wallet)
 }
@@ -145,7 +161,7 @@ func Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var walletID string
+	walletID := ""
 	for id, wallet := range user.Wallets {
 		if wallet.Name == walletName {
 			walletID = id
@@ -164,9 +180,36 @@ func Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wallet.Balance -= amount
+	wallet.Transactions = append(wallet.Transactions, Transaction{
+		Type:   "withdraw",
+		Amount: amount,
+		Date:   time.Now(),
+	})
+
 	user.Wallets[walletID] = wallet
 	users[userID] = user
 	wallets[walletID] = wallet
 
 	json.NewEncoder(w).Encode(wallet)
+}
+
+func GetTransactions(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userid"]
+	walletName := vars["walletname"]
+
+	user, ok := users[userID]
+	if !ok {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	for _, wallet := range user.Wallets {
+		if wallet.Name == walletName {
+			json.NewEncoder(w).Encode(wallet.Transactions)
+			return
+		}
+	}
+
+	http.Error(w, "wallet not found", http.StatusNotFound)
 }

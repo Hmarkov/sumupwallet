@@ -15,7 +15,7 @@ import (
 func setup() {
 	users = make(map[string]User)
 	wallets = make(map[string]Wallet)
-	users["u1"] = User{ID: "u1", Name: "Test User"}
+	users["u1"] = User{ID: "u1", Name: "Test User", Wallets: make(map[string]Wallet)}
 }
 
 func TestCreateWallet(t *testing.T) {
@@ -93,8 +93,8 @@ func createTestWallet(t *testing.T) Wallet {
 func TestDeposit(t *testing.T) {
 	wallet := createTestWallet(t)
 
-	depReq := httptest.NewRequest("PUT", "/wallets/"+wallet.ID+"/deposit/200", nil)
-	depReq = mux.SetURLVars(depReq, map[string]string{"walletid": wallet.ID, "amount": "200"})
+	depReq := httptest.NewRequest("PUT", "/users/u1/wallets/"+wallet.Name+"/deposit/200", nil)
+	depReq = mux.SetURLVars(depReq, map[string]string{"userid": "u1", "walletname": wallet.Name, "amount": "200"})
 	depRes := httptest.NewRecorder()
 	Deposit(depRes, depReq)
 
@@ -109,13 +109,13 @@ func TestDeposit(t *testing.T) {
 func TestWithdraw(t *testing.T) {
 	wallet := createTestWallet(t)
 
-	// deposit first so we can withdraw
-	depReq := httptest.NewRequest("PUT", "/wallets/"+wallet.ID+"/deposit/200", nil)
-	depReq = mux.SetURLVars(depReq, map[string]string{"walletid": wallet.ID, "amount": "200"})
+	// Deposit first so we can withdraw
+	depReq := httptest.NewRequest("PUT", "/users/u1/wallets/"+wallet.Name+"/deposit/200", nil)
+	depReq = mux.SetURLVars(depReq, map[string]string{"userid": "u1", "walletname": wallet.Name, "amount": "200"})
 	Deposit(httptest.NewRecorder(), depReq)
 
-	withReq := httptest.NewRequest("PUT", "/wallets/"+wallet.ID+"/withdraw/100", nil)
-	withReq = mux.SetURLVars(withReq, map[string]string{"walletid": wallet.ID, "amount": "100"})
+	withReq := httptest.NewRequest("PUT", "/users/u1/wallets/"+wallet.Name+"/withdraw/100", nil)
+	withReq = mux.SetURLVars(withReq, map[string]string{"userid": "u1", "walletname": wallet.Name, "amount": "100"})
 	withRes := httptest.NewRecorder()
 	Withdraw(withRes, withReq)
 
@@ -130,14 +130,14 @@ func TestWithdraw(t *testing.T) {
 func TestOverWithdraw(t *testing.T) {
 	wallet := createTestWallet(t)
 
-	// deposit 50
-	depReq := httptest.NewRequest("PUT", "/wallets/"+wallet.ID+"/deposit/50", nil)
-	depReq = mux.SetURLVars(depReq, map[string]string{"walletid": wallet.ID, "amount": "50"})
+	// Deposit 50
+	depReq := httptest.NewRequest("PUT", "/users/u1/wallets/"+wallet.Name+"/deposit/50", nil)
+	depReq = mux.SetURLVars(depReq, map[string]string{"userid": "u1", "walletname": wallet.Name, "amount": "50"})
 	Deposit(httptest.NewRecorder(), depReq)
 
-	// try to withdraw 100 fail
-	owReq := httptest.NewRequest("PUT", "/wallets/"+wallet.ID+"/withdraw/100", nil)
-	owReq = mux.SetURLVars(owReq, map[string]string{"walletid": wallet.ID, "amount": "100"})
+	// Try to withdraw 100 fail
+	owReq := httptest.NewRequest("PUT", "/users/u1/wallets/"+wallet.Name+"/withdraw/100", nil)
+	owReq = mux.SetURLVars(owReq, map[string]string{"userid": "u1", "walletname": wallet.Name, "amount": "100"})
 	owRes := httptest.NewRecorder()
 	Withdraw(owRes, owReq)
 
