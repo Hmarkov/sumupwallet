@@ -12,12 +12,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Initializing in memory data used before each test case
 func setup() {
 	users = make(map[string]User)
 	wallets = make(map[string]Wallet)
 	users["u1"] = User{ID: "u1", Name: "Test User", Wallets: make(map[string]Wallet)}
 }
 
+// Simulate a POST request to create a wallet
 func TestCreateWallet(t *testing.T) {
 	setup()
 
@@ -38,6 +40,7 @@ func TestCreateWallet(t *testing.T) {
 	assert.Equal(t, "u1", wallet.UserID)
 }
 
+// Wallet duplcate name check for the same user
 func TestCreateDuplicateWalletName(t *testing.T) {
 	setup()
 
@@ -54,6 +57,7 @@ func TestCreateDuplicateWalletName(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+// Wallet limit check verifying that the user cannot create more than 10 wallets
 func TestWalletLimit(t *testing.T) {
 	setup()
 
@@ -73,6 +77,7 @@ func TestWalletLimit(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+// Helper method to create a wallet for testing purposes
 func createTestWallet(t *testing.T) Wallet {
 	setup()
 
@@ -90,6 +95,7 @@ func createTestWallet(t *testing.T) Wallet {
 	return wallet
 }
 
+// Deposit test
 func TestDeposit(t *testing.T) {
 	wallet := createTestWallet(t)
 
@@ -106,6 +112,7 @@ func TestDeposit(t *testing.T) {
 	assert.Equal(t, 200, updated.Balance)
 }
 
+// Withdraw test
 func TestWithdraw(t *testing.T) {
 	wallet := createTestWallet(t)
 
@@ -127,6 +134,7 @@ func TestWithdraw(t *testing.T) {
 	assert.Equal(t, 100, afterWithdraw.Balance)
 }
 
+// Withdrawing more than balance
 func TestOverWithdraw(t *testing.T) {
 	wallet := createTestWallet(t)
 

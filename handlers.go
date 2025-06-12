@@ -13,6 +13,13 @@ import (
 var users = make(map[string]User)
 var wallets = make(map[string]Wallet)
 
+// Handles creating a new wallet for a user with limit 10 wallets max per user and check for wallet duplication.
+/* POST http://localhost:8080/users/u1/wallets
+Body json:
+{
+  "name": "MyWallet"
+}
+*/
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["userid"]
 	user, ok := users[userID]
@@ -64,6 +71,8 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(wallet)
 }
 
+// Retrieves a wallet given the name with all info plus transactions for a given user.
+// GET http://localhost:8080/users/u1/wallets/MyWallet
 func GetWallet(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["userid"]
 	walletName := mux.Vars(r)["walletname"]
@@ -84,6 +93,8 @@ func GetWallet(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "wallet not found", http.StatusNotFound)
 }
 
+// List all wallets infos and transactions for a given user.
+// GET http://localhost:8080/users/u1/wallets
 func GetWallets(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["userid"]
 	user, ok := users[userID]
@@ -100,6 +111,8 @@ func GetWallets(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(walletList)
 }
 
+// Add funds to a user wallet given the user and wallet name
+// PUT http://localhost:8080/users/u1/wallets/MyWallet/deposit/500
 func Deposit(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["userid"]
 	walletName := mux.Vars(r)["walletname"]
@@ -144,6 +157,8 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(wallet)
 }
 
+// Subtract funds from a user wallet given the userid and wallet name
+// PUT http://localhost:8080/users/u1/wallets/MyWallet/withdraw/500
 func Withdraw(w http.ResponseWriter, r *http.Request) {
 	userID := mux.Vars(r)["userid"]
 	walletName := mux.Vars(r)["walletname"]
@@ -193,6 +208,8 @@ func Withdraw(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(wallet)
 }
 
+// Retrieves the transaction history of a given wallet, given the userid and wallet name
+// GET http://localhost:8080/users/u1/wallets/MyWallet/transactions
 func GetTransactions(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["userid"]

@@ -2,6 +2,12 @@ package main
 
 import "time"
 
+/*
+Structures:
+User of the system - id, name and a map of wallets where each key is the wallet id.
+Wallet - id, name for easier user access, balance, link to the owner, Transactions list tracking depostis, withdrawals.
+Transaction for each financial operation - type (deposit/withdraw), Amount, Date (time the transaction occured).
+*/
 type User struct {
 	ID      string            `json:"id"`
 	Name    string            `json:"name"`
