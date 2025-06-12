@@ -91,46 +91,82 @@ func GetWallets(w http.ResponseWriter, r *http.Request) {
 }
 
 func Deposit(w http.ResponseWriter, r *http.Request) {
-	walletID := mux.Vars(r)["walletid"]
+	userID := mux.Vars(r)["userid"]
+	walletName := mux.Vars(r)["walletname"]
 	amountStr := mux.Vars(r)["amount"]
+
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil || amount <= 0 {
 		http.Error(w, "invalid amount", http.StatusBadRequest)
 		return
 	}
 
-	wallet, ok := wallets[walletID]
+	user, ok := users[userID]
 	if !ok {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	var wallet *Wallet
+	for _, w := range user.Wallets {
+		if w.Name == walletName {
+			wallet = &w
+			break
+		}
+	}
+
+	if wallet == nil {
 		http.Error(w, "wallet not found", http.StatusNotFound)
 		return
 	}
 
 	wallet.Balance += amount
-	wallets[walletID] = wallet
+	user.Wallets[wallet.ID] = *wallet
+	users[userID] = user
+	wallets[wallet.ID] = *wallet
+
 	json.NewEncoder(w).Encode(wallet)
 }
 
 func Withdraw(w http.ResponseWriter, r *http.Request) {
-	walletID := mux.Vars(r)["walletid"]
+	userID := mux.Vars(r)["userid"]
+	walletName := mux.Vars(r)["walletname"]
 	amountStr := mux.Vars(r)["amount"]
+
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil || amount <= 0 {
 		http.Error(w, "invalid amount", http.StatusBadRequest)
 		return
 	}
 
-	wallet, ok := wallets[walletID]
+	user, ok := users[userID]
 	if !ok {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	var walletID string
+	for id, wallet := range user.Wallets {
+		if wallet.Name == walletName {
+			walletID = id
+			break
+		}
+	}
+	if walletID == "" {
 		http.Error(w, "wallet not found", http.StatusNotFound)
 		return
 	}
 
+	wallet := user.Wallets[walletID]
 	if wallet.Balance < amount {
 		http.Error(w, "insufficient funds", http.StatusBadRequest)
 		return
 	}
 
 	wallet.Balance -= amount
+	user.Wallets[walletID] = wallet
+	users[userID] = user
 	wallets[walletID] = wallet
+
 	json.NewEncoder(w).Encode(wallet)
 }
