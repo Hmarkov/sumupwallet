@@ -46,3 +46,14 @@ A simple RESTful API that allows users to manage wallets, perform deposits and w
 - Each user can have up to 10 wallets
 - Withdrawals fail if the wallet has insufficient balance
 - The Application uses in memory data, no persistance storage logic implemented
+
+## Optional logic not integrated but essential for production ready deployment
+
+- Real database like PostegreSQL, MYSQL or MongoDB can be used as a storage for user wallets
+- Containerization with Docker to make it portable 
+- Authentication and Autorization necessary to keep info secury maybe a JWT or session based auth
+- Input Valiidation to expand on the current manual checks maybe validator libraries for structured validation 
+- Better unit testing i'm sure my primitive tests cover only 20% of the logic
+- Error handling could be better
+- Concurency for safety, using database transactions and locking mechanism depending on the database
+
